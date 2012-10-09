@@ -16,6 +16,7 @@ module.exports = function( grunt ){
 
     var status;
     var errorReporting = false;
+    var showMessageReporting = false;
 
     // Allow an error message to retain its color when split across multiple lines.
     function formatMessage( str ){
@@ -30,36 +31,50 @@ module.exports = function( grunt ){
         begin : function(){
 
         },
-        testDone : function( suite, name, totalAssertions, passedAssertions, failedAssertions, skippedAssertions ){
+        testDone : function( suite, name, totalAssertions, passedAssertions, failedAssertions, skippedAssertions, results ){
             status.specs++;
             status.failed += failedAssertions;
             status.passed += passedAssertions;
             status.total += totalAssertions;
             status.skipped += skippedAssertions;
-            
-            var testName = suite + ' : ' + name + '...';
+
+            var testName = suite + ' : ' + name + '...',
+                i = 0;
             if( grunt.option( 'verbose' ) ){
-	            grunt.log.write( testName );
-	            if( failedAssertions > 0 ){
+                grunt.log.write( testName );
+                if( failedAssertions > 0 ){
+                    if( showMessageReporting ){
+                        for (i = 0; i < results['items_'].length; i++) {
+                            grunt.log.write( (' - ' + results['items_'][i].message).red );
+                            grunt.log.error();
+                        }
+                    }
                     grunt.log.error();
-	            }else if( skippedAssertions > 0 ){
+                }else if( skippedAssertions > 0 ){
                     grunt.log.warn();
-	            }else{
-	            	grunt.log.ok();
-	            }
+                }else{
+                    grunt.log.ok();
+                }
             }else{
-	            if( failedAssertions > 0 ){
-	            	if( errorReporting ){
-			            grunt.log.write( testName.red );
-			            grunt.log.error();
-	            	}else{
-	                    grunt.log.write( 'F'.red );
-	                }
-	            }else if( skippedAssertions > 0 ){
+                if( failedAssertions > 0 ){
+                    if( errorReporting ){
+                        grunt.log.write( testName.red );
+                        grunt.log.error();
+                    }else{
+                        grunt.log.write( 'F'.red );
+                    }
+
+                    if( showMessageReporting ){
+                        for (i = 0; i < results['items_'].length; i++) {
+                            grunt.log.write( (' - ' + results['items_'][i].message).red );
+                            grunt.log.error();
+                        }
+                    }
+                }else if( skippedAssertions > 0 ){
                     grunt.log.write( '*'.red );
-	            }else{
-	            	grunt.log.write( '.'.green );
-	            }
+                }else{
+                    grunt.log.write( '.'.green );
+                }
             }
         },
         done : function( elapsed ){
@@ -90,8 +105,9 @@ module.exports = function( grunt ){
         if( typeof timeout === "undefined" ){
             timeout = 10000;
         }
-        
+
         errorReporting = !!grunt.config( [ 'jasmine', this.target, 'errorReporting' ] );
+        showMessageReporting = !!grunt.config( [ 'jasmine', this.target, 'showMessageReporting' ] );
 
         // Get files as URLs.
         var urls = grunt.file.expandFileURLs( this.file.src );

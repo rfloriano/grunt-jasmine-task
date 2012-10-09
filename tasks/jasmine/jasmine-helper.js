@@ -47,7 +47,7 @@ GruntReporter.prototype = {
     reportSpecResults : function( spec ){
         var results = spec.results();
         var suites = this._getSuitesToRoot( spec.suite );
-        sendMessage( 'testDone', suites.join( ' ' ), spec.description, results.totalCount, results.passedCount, results.failedCount, results.skipped );
+        sendMessage( 'testDone', suites.join( ' ' ), spec.description, results.totalCount, results.passedCount, results.failedCount, results.skipped, results );
     }
 };
 
